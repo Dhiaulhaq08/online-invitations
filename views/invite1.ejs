@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Wedding of <%= invite.groom_name %> & <%= invite.bride_name %></title>
+    <style>
+        body { text-align: center; font-family: 'Georgia', serif; padding: 20px; background-color: #fdf5e6; color: #4a4a4a; }
+        .card { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .names { font-size: 2.5em; color: #d4af37; margin: 20px 0; }
+        
+        /* Style untuk Galeri */
+        .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 30px; }
+        .gallery img { width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 3px solid #eee; }
+        
+        .love-story { background: #fafafa; padding: 20px; margin: 30px 0; border-left: 5px solid #d4af37; font-style: italic; text-align: justify;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <p>The Wedding of</p>
+        <h1 class="names"><%= invite.groom_name %> & <%= invite.bride_name %></h1>
+        
+        <% if (invite.event_date) { %>
+            <p><%= new Date(invite.event_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+        <% } %>
+        
+        <p><%= invite.location %></p>
+
+        <% if (invite.love_story) { %>
+            <div class="love-story">
+                <h3>Our Love Story</h3>
+                <p><%= invite.love_story %></p>
+            </div>
+        <% } %>
+
+        <% if (invite.gallery_urls && invite.gallery_urls.length > 0) { %>
+            <h3>Galeri Foto</h3>
+            <div class="gallery">
+                <% invite.gallery_urls.forEach(function(url) { %>
+                    <img src="<%= url %>" alt="Foto Prewedding">
+                <% }); %>
+            </div>
+        <% } %>
+
+        <hr>
+        <p><small>Dibuat dengan penuh cinta</small></p>
+    </div>
+</body>
+</html>
