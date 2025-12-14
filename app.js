@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 // --- KONFIGURASI SUPABASE ---
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- KONFIGURASI MULTER (UPLOAD) ---
+// --- KONFIGURASI MULTER ---
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -79,23 +79,22 @@ app.get('/create', async (req, res) => {
     res.render('index', { mode: 'create', user: user });
 });
 
-// Middleware Multer untuk menangani banyak file (Galeri + Foto Profil)
+// Middleware Multer
 const formUploads = upload.fields([
-    { name: 'groomPhoto', maxCount: 1 }, // Foto Mempelai Pria
-    { name: 'bridePhoto', maxCount: 1 }, // Foto Mempelai Wanita
+    { name: 'groomPhoto', maxCount: 1 },
+    { name: 'bridePhoto', maxCount: 1 },
     { name: 'gallery_1', maxCount: 1 },
     { name: 'gallery_2', maxCount: 1 },
     { name: 'gallery_3', maxCount: 1 },
     { name: 'gallery_4', maxCount: 1 }
 ]);
 
-// 5. PROSES SIMPAN UNDANGAN (UPLOAD + DATA)
+// 5. PROSES SIMPAN UNDANGAN
 app.post('/create', formUploads, async (req, res) => {
     try {
         const userId = req.body.user_id; 
         const files = req.files || {};
 
-        // Fungsi Helper Upload ke Supabase Storage
         const uploadFile = async (fileObject) => {
             if (!fileObject) return null;
             const file = fileObject[0];
@@ -105,25 +104,20 @@ app.post('/create', formUploads, async (req, res) => {
             const { data, error } = await supabase.storage
                 .from('images')
                 .upload(fileName, file.buffer, { contentType: file.mimetype });
-                
-            if (error) { console.error('Upload Error:', error); return null; }
-
+            if (error) return null;
             const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(fileName);
             return publicUrlData.publicUrl;
         };
 
-        // Upload Foto Profil
         const groomPhotoUrl = files.groomPhoto ? await uploadFile(files.groomPhoto) : null;
         const bridePhotoUrl = files.bridePhoto ? await uploadFile(files.bridePhoto) : null;
 
-        // Upload Galeri
         const galleryUrls = [];
         if (files.gallery_1) galleryUrls.push(await uploadFile(files.gallery_1));
         if (files.gallery_2) galleryUrls.push(await uploadFile(files.gallery_2));
         if (files.gallery_3) galleryUrls.push(await uploadFile(files.gallery_3));
         if (files.gallery_4) galleryUrls.push(await uploadFile(files.gallery_4));
 
-        // Susun Data Love Story
         const loveStory = [];
         for(let i=1; i<=3; i++) {
             if(req.body[`story_title_${i}`]) {
@@ -135,7 +129,6 @@ app.post('/create', formUploads, async (req, res) => {
             }
         }
 
-        // Insert ke Database
         const { error } = await supabase.from('invitations').insert([{
             user_id: userId,
             groom_name: req.body.groomName,
@@ -147,17 +140,14 @@ app.post('/create', formUploads, async (req, res) => {
             message: req.body.message,
             love_story: loveStory, 
             gallery: galleryUrls,
-            // Data Bank
             bank_name: req.body.bankName,
             account_number: req.body.accountNumber,
             account_holder: req.body.accountHolder,
-            // Foto Profil Baru
             groom_photo: groomPhotoUrl,
             bride_photo: bridePhotoUrl
         }]);
 
         if (error) throw error;
-
         res.redirect(`/?user_id=${userId}`);
 
     } catch (error) {
@@ -166,7 +156,7 @@ app.post('/create', formUploads, async (req, res) => {
     }
 });
 
-// 6. HALAMAN PUBLIC (TAMPILAN TAMU)
+// 6. HALAMAN PUBLIC
 app.get('/u/:id', async (req, res) => {
     const { data: invite, error } = await supabase.from('invitations').select('*').eq('id', req.params.id).single();
     if (error || !invite) return res.send("Undangan tidak ditemukan");
@@ -177,26 +167,36 @@ app.get('/u/:id', async (req, res) => {
         .eq('invitation_id', req.params.id)
         .order('created_at', { ascending: false });
 
-    res.render('invite', { 
-        invitation: invite,
-        comments: comments || [] 
-    });
+    res.render('invitation', { invitation: invite, comments: comments || [] });
 });
 
-// 7. PROSES KIRIM KOMENTAR
+// 7. KOMENTAR
 app.post('/u/:id/comment', async (req, res) => {
     const invitationId = req.params.id;
     const { guest_name, message, attendance } = req.body;
-
     const { error } = await supabase.from('comments').insert([{
-        invitation_id: invitationId,
-        guest_name: guest_name,
-        message: message,
-        attendance: attendance
+        invitation_id: invitationId, guest_name, message, attendance
     }]);
-
     if (error) return res.send("Gagal mengirim ucapan.");
     res.redirect(`/u/${invitationId}#wishes`);
+});
+
+// --- RUTE BARU: HAPUS UNDANGAN ---
+app.post('/delete-invitation', async (req, res) => {
+    const { invitation_id, user_id } = req.body;
+
+    // Hapus data dari tabel invitations (tabel comments akan terhapus otomatis karena CASCADE)
+    const { error } = await supabase
+        .from('invitations')
+        .delete()
+        .eq('id', invitation_id)
+        .eq('user_id', user_id); // Pastikan yang menghapus adalah pemiliknya
+
+    if (error) {
+        return res.send("Gagal menghapus: " + error.message);
+    }
+
+    res.redirect(`/?user_id=${user_id}`);
 });
 
 app.listen(port, () => {
