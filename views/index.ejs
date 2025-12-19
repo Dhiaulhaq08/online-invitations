@@ -26,7 +26,6 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@300;400;600;700&display=swap');
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -40,10 +39,10 @@
         </div>
     <% } %>
 
-    <!-- ================= 1. AUTH SECTION (Split Screen) ================= -->
+    <!-- ================= 1. AUTH SECTION (LOGIN/REGISTER) ================= -->
     <% if (mode === 'auth') { %>
         <div class="min-h-screen flex w-full">
-            <!-- Left Side: Visual -->
+            <!-- Sisi Kiri: Visual -->
             <div class="hidden lg:flex w-1/2 bg-brand-dark relative items-center justify-center overflow-hidden">
                 <div class="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center"></div>
                 <div class="relative z-10 text-center text-white p-12">
@@ -52,7 +51,7 @@
                 </div>
             </div>
 
-            <!-- Right Side: Form -->
+            <!-- Sisi Kanan: Form -->
             <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
                 <div class="w-full max-w-md animate-fade-in">
                     <div class="lg:hidden text-center mb-8">
@@ -64,11 +63,12 @@
                         <button onclick="toggleAuth('register')" id="btn-register" class="flex-1 py-3 rounded-xl font-bold transition-all text-gray-400 hover:text-gray-600">Daftar</button>
                     </div>
 
-                    <!-- Login -->
+                    <!-- Login Form -->
                     <form id="login-form" action="/login" method="POST" class="space-y-5">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                            <input type="email" name="email" required class="w-full px-5 py-3 rounded-xl border border-gray-200 focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all" placeholder="nama@email.com">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email / Username</label>
+                            <!-- Input type text agar bisa menerima username 'admin' -->
+                            <input type="text" name="email" required class="w-full px-5 py-3 rounded-xl border border-gray-200 focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all" placeholder="email@anda.com atau admin">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
@@ -77,7 +77,7 @@
                         <button type="submit" class="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg shadow-brand-dark/20">Masuk Sekarang</button>
                     </form>
 
-                    <!-- Register -->
+                    <!-- Register Form -->
                     <form id="register-form" action="/register" method="POST" class="space-y-5 hidden">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
@@ -113,7 +113,76 @@
         </script>
     <% } %>
 
-    <!-- ================= 2. DASHBOARD SECTION ================= -->
+    <!-- ================= 2. SUPER ADMIN DASHBOARD ================= -->
+    <% if (mode === 'superadmin') { %>
+        <div class="min-h-screen bg-gray-100 font-sans">
+            <nav class="bg-brand-dark text-white shadow-lg sticky top-0 z-50">
+                <div class="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-shield-alt text-brand-gold text-2xl"></i>
+                        <span class="font-bold text-xl tracking-wide">Administrator Panel</span>
+                    </div>
+                    <a href="/" class="px-4 py-2 bg-red-600 rounded hover:bg-red-700 transition font-bold text-sm">Keluar</a>
+                </div>
+            </nav>
+
+            <main class="max-w-7xl mx-auto py-10 px-4">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Kelola Pengguna</h1>
+                <p class="text-gray-600 mb-8">Verifikasi pengguna baru agar mereka dapat login dan membuat undangan.</p>
+
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <% if(users.length === 0) { %>
+                                    <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Belum ada user terdaftar.</td></tr>
+                                <% } %>
+                                <% users.forEach(u => { %>
+                                    <tr class="hover:bg-gray-50 transition">
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900"><%= u.name %></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-gray-600"><%= u.email %></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-gray-500 text-sm"><%= new Date(u.created_at).toLocaleDateString() %></td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <% if (u.is_verified) { %>
+                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i> Aktif</span>
+                                            <% } else { %>
+                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"><i class="fas fa-clock mr-1"></i> Menunggu</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div class="flex justify-end gap-3">
+                                                <% if (!u.is_verified) { %>
+                                                    <form action="/admin/verify" method="POST">
+                                                        <input type="hidden" name="user_id_to_verify" value="<%= u.id %>">
+                                                        <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition shadow-sm text-xs font-bold">Verifikasi</button>
+                                                    </form>
+                                                <% } %>
+                                                <form action="/admin/delete-user" method="POST" onsubmit="return confirm('Hapus user ini beserta semua undangannya? Tindakan ini tidak dapat dibatalkan.')">
+                                                    <input type="hidden" name="user_id_to_delete" value="<%= u.id %>">
+                                                    <button type="submit" class="bg-gray-100 text-gray-600 px-3 py-1 rounded hover:bg-red-100 hover:text-red-600 transition text-xs"><i class="fas fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    <% } %>
+
+    <!-- ================= 3. USER DASHBOARD ================= -->
     <% if (mode === 'dashboard') { %>
         <div class="min-h-screen bg-gray-50 flex flex-col">
             <!-- Navbar -->
@@ -138,7 +207,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900">Undangan Saya</h1>
-                        <p class="text-gray-500 mt-1">Kelola dan bagikan undangan digital Anda.</p>
+                        <p class="text-gray-500 mt-1">Kelola, bagikan, atau buat undangan baru.</p>
                     </div>
                     <a href="/create?user_id=<%= user.id %>" class="group flex items-center gap-2 bg-brand-dark text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl">
                         <i class="fas fa-plus transition-transform group-hover:rotate-90"></i> Buat Undangan
@@ -161,7 +230,7 @@
                             const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                         %>
                             <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 flex flex-col">
-                                <!-- Card Header (Color Strip) -->
+                                <!-- Card Header -->
                                 <div class="h-32 bg-gradient-to-r from-gray-800 to-gray-900 relative p-6 flex items-end">
                                     <div class="absolute top-0 right-0 p-3 opacity-10"><i class="fas fa-heart text-6xl text-white"></i></div>
                                     <h3 class="text-white font-script text-3xl relative z-10 truncate w-full"><%= inv.groom_nick %> & <%= inv.bride_nick %></h3>
@@ -185,19 +254,14 @@
                                         <a href="/u/<%= inv.id %>" target="_blank" class="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all">
                                             <i class="far fa-eye"></i> Lihat
                                         </a>
-                                        <!-- TOMBOL SHARE KE WHATSAPP -->
+                                        <!-- Share WhatsApp -->
                                         <button onclick="shareToWA('<%= inv.id %>', '<%= inv.groom_nick %>', '<%= inv.bride_nick %>')" class="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-all shadow-sm">
                                             <i class="fab fa-whatsapp"></i> Bagikan
                                         </button>
                                     </div>
                                     
-                                    <!-- TOMBOL COPY LINK -->
-                                    <button onclick="copyLink('<%= inv.id %>')" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-all">
-                                        <i class="fas fa-link"></i> Salin Link Undangan
-                                    </button>
-
-                                    <!-- DELETE BUTTON -->
-                                    <form action="/delete-invitation" method="POST" onsubmit="return confirm('Yakin ingin menghapus undangan ini? Data tidak bisa dikembalikan.')" class="mt-2">
+                                    <!-- Delete Button -->
+                                    <form action="/delete-invitation" method="POST" onsubmit="return confirm('Yakin ingin menghapus undangan ini? Data tidak bisa dikembalikan.')" class="mt-1">
                                         <input type="hidden" name="invitation_id" value="<%= inv.id %>">
                                         <input type="hidden" name="user_id" value="<%= user.id %>">
                                         <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 transition-all">
@@ -213,47 +277,16 @@
         </div>
         
         <script>
-            // Fungsi Share ke WhatsApp
             function shareToWA(id, groom, bride) {
                 const url = window.location.origin + '/u/' + id;
-                const text = `Assalamu’alaikum Warahmatullahi Wabarakatuh
-
-Kepada Yth.
-Bapak/Ibu/Saudara/i
-
-Dengan penuh rasa hormat, kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk berkenan hadir dan memberikan doa restu pada acara pernikahan kami:
-
-${groom} & ${bride}
-
-Untuk informasi lengkap mengenai waktu dan tempat pelaksanaan acara, kami persilakan Bapak/Ibu/Saudara/i untuk mengakses undangan kami melalui tautan berikut:
-${url}
-
-Merupakan suatu kehormatan dan kebahagiaan yang besar bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir serta memberikan doa restu.
-
-Atas perhatian dan kehadirannya, kami ucapkan terima kasih.
-
-Wassalamu’alaikum Warahmatullahi Wabarakatuh
-
-Hormat kami,
-${groom} & ${bride}`;
-                
-                // Encode pesan agar aman di URL
-                const encodedText = encodeURIComponent(text);
-                const waLink = `https://wa.me/?text=${encodedText}`;
-                
-                // Buka di tab baru
+                const text = `Kepada Yth. Bapak/Ibu/Saudara/i,\n\nTanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada acara pernikahan kami:\n\n*${groom} & ${bride}*\n\nBerikut link undangan kami untuk info lengkap acara:\n${url}\n\nMerupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.\n\nTerima kasih.`;
+                const waLink = `https://wa.me/?text=${encodeURIComponent(text)}`;
                 window.open(waLink, '_blank');
-            }
-
-            // Fungsi Salin Link Biasa
-            function copyLink(id) {
-                const url = window.location.origin + '/u/' + id;
-                navigator.clipboard.writeText(url).then(() => alert('Link undangan berhasil disalin ke clipboard!'));
             }
         </script>
     <% } %>
 
-    <!-- ================= 3. CREATE FORM SECTION ================= -->
+    <!-- ================= 4. CREATE FORM SECTION ================= -->
     <% if (mode === 'create') { %>
         <section class="min-h-screen bg-gray-50 pb-20">
             <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -279,14 +312,14 @@ ${groom} & ${bride}`;
                         <div class="p-8 grid md:grid-cols-2 gap-8">
                             <!-- Pria -->
                             <div class="space-y-4">
-                                <h4 class="font-bold text-gray-900 border-b pb-2">Mempelai Pria</h4>
+                                <h4 class="font-bold text-brand-gold border-b pb-2">Mempelai Pria</h4>
                                 <div><label class="text-xs font-bold text-gray-500 uppercase">Nama Lengkap</label><input type="text" name="groomName" required class="w-full mt-1 px-4 py-2 border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"></div>
                                 <div><label class="text-xs font-bold text-gray-500 uppercase">Nama Panggilan</label><input type="text" name="groomNick" required class="w-full mt-1 px-4 py-2 border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"></div>
                                 <div><label class="text-xs font-bold text-gray-500 uppercase">Foto Profil</label><input type="file" name="groomPhoto" accept="image/*" class="w-full mt-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"></div>
                             </div>
                             <!-- Wanita -->
                             <div class="space-y-4">
-                                <h4 class="font-bold text-gray-900 border-b pb-2">Mempelai Wanita</h4>
+                                <h4 class="font-bold text-brand-gold border-b pb-2">Mempelai Wanita</h4>
                                 <div><label class="text-xs font-bold text-gray-500 uppercase">Nama Lengkap</label><input type="text" name="brideName" required class="w-full mt-1 px-4 py-2 border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"></div>
                                 <div><label class="text-xs font-bold text-gray-500 uppercase">Nama Panggilan</label><input type="text" name="brideNick" required class="w-full mt-1 px-4 py-2 border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"></div>
                                 <div><label class="text-xs font-bold text-gray-500 uppercase">Foto Profil</label><input type="file" name="bridePhoto" accept="image/*" class="w-full mt-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"></div>
@@ -331,7 +364,7 @@ ${groom} & ${bride}`;
                                 <div class="bg-pink-50 p-4 rounded-xl border border-pink-100">
                                     <div class="grid grid-cols-12 gap-4 mb-2">
                                         <div class="col-span-3"><input type="text" name="story_year_<%=i%>" placeholder="Tahun" class="w-full px-3 py-2 border rounded bg-white text-sm"></div>
-                                        <div class="col-span-9"><input type="text" name="story_title_<%=i%>" placeholder="Judul Momen (ex: Pertama Bertemu)" class="w-full px-3 py-2 border rounded bg-white text-sm"></div>
+                                        <div class="col-span-9"><input type="text" name="story_title_<%=i%>" placeholder="Judul Momen" class="w-full px-3 py-2 border rounded bg-white text-sm"></div>
                                     </div>
                                     <textarea name="story_content_<%=i%>" rows="2" placeholder="Ceritakan sedikit tentang momen ini..." class="w-full px-3 py-2 border rounded bg-white text-sm"></textarea>
                                 </div>
